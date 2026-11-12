@@ -96,11 +96,14 @@ public class MptDictionaryController extends BaseController {
 
     @RequiresPermissions("system:dictionary:query")
     @GetMapping("/{id}/data")
-    public ApiResponse<List<Map<String, Object>>> getData(@PathVariable Long id) {
+    public ApiResponse<PageResult<Map<String, Object>>> getData(@PathVariable Long id) {
         log.info("管理后台用户[{}]查询字典[{}]数据", SecurityContextHolder.getUserName(), id);
         try {
-            List<Map<String, Object>> data = dictionaryAppService.queryData(id);
-            return ApiResponse.ok(data);
+            Dictionary dictionary = dictionaryAppService.getForDataQuery(id);
+            // 分页必须在动态表查询前开启，且不能先被字典定义查询消耗
+            startPage();
+            List<Map<String, Object>> data = dictionaryAppService.queryData(dictionary);
+            return ApiResponse.ok(getPageResult(data));
         } catch (Exception e) {
             log.error("查询字典数据失败", e);
             return ApiResponse.fail(e.getMessage());

@@ -120,7 +120,14 @@ public class DictionaryAppService {
         return dictionaryRepository.batchDelete(ids);
     }
 
-    public List<Map<String, Object>> queryData(Long dictionaryId) {
+    /**
+     * 获取字典数据查询所需的字典定义。
+     *
+     * <p>字典数据列表的分页必须在动态表查询前开启（PageHelper 只作用于其后第一条 SQL），
+     * 而查询字典定义本身也是一条 SQL，因此将“取字典定义”与“查数据”拆开，
+     * 由控制层在两者之间开启分页，避免分页被字典定义查询消耗。</p>
+     */
+    public Dictionary getForDataQuery(Long dictionaryId) {
         Dictionary dictionary = dictionaryRepository.findById(dictionaryId);
         if (dictionary == null) {
             throw new RuntimeException("字典不存在");
@@ -129,11 +136,17 @@ public class DictionaryAppService {
         if (StrUtil.isBlank(dictionary.getSelectColumn())) {
             throw new RuntimeException("字典未配置查询列");
         }
+        return dictionary;
+    }
 
+    /**
+     * 按字典定义查询动态表数据，分页由调用方在调用本方法前开启。
+     */
+    public List<Map<String, Object>> queryData(Dictionary dictionary) {
         Map<String, String> columnMap = new HashMap<>();
         // 添加 id 字段
         columnMap.put("id", "id");
-        
+
         JSONUtil.parseArray(dictionary.getSelectColumn()).forEach(item -> {
             JSONObject selectItem = (JSONObject) item;
             String targetColumn = selectItem.getStr("targetColumn");
@@ -145,7 +158,7 @@ public class DictionaryAppService {
         });
 
         String whereClause = buildWhereClause(dictionary.getWhereCondition());
-        
+
         return dictionaryCategoryRepository.selectTableListWithWhere(dictionary.getCategoryCode(), columnMap, whereClause);
     }
 

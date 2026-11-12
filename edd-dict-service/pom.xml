@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>net.hwyz.iov.cloud.parent</groupId>
+        <artifactId>service</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>net.hwyz.iov.cloud.edd</groupId>
+    <artifactId>edd-dict-service</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+        <dictionary.version>0.0.1-SNAPSHOT</dictionary.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.hwyz.iov.cloud.edd</groupId>
+            <artifactId>edd-dict-api</artifactId>
+            <version>${dictionary.version}</version>
+        </dependency>
+
+        <!-- 框架: MySQL -->
+        <dependency>
+            <groupId>net.hwyz.iov.cloud.framework</groupId>
+            <artifactId>framework-mysql-starter</artifactId>
+        </dependency>
+
+        <!-- 框架: Redis -->
+        <dependency>
+            <groupId>net.hwyz.iov.cloud.framework</groupId>
+            <artifactId>framework-redis-starter</artifactId>
+        </dependency>
+
+        <!-- 框架: 安全 -->
+        <dependency>
+            <groupId>net.hwyz.iov.cloud.framework</groupId>
+            <artifactId>framework-security-starter</artifactId>
+        </dependency>
+
+        <!-- 框架: 审计 -->
+        <dependency>
+            <groupId>net.hwyz.iov.cloud.framework</groupId>
+            <artifactId>framework-audit-starter</artifactId>
+        </dependency>
+    </dependencies>
+
+    <!-- 测试执行门禁由 EDD-DICT-DSN-CR-001 §10 要求：平台 Parent 全局 surefire skip=true，
+         此处以独立测试 profile 显式放开，避免改变默认构建行为（CI 无 MySQL/Nacos 时不执行集成测试）。 -->
+    <profiles>
+        <profile>
+            <id>dict-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-test</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>false</skip>
+                                    <!-- framework-mysql-starter 时间治理启动探针要求 UTC 等价时区 -->
+                                    <argLine>-Duser.timezone=UTC</argLine>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
